@@ -1,0 +1,63 @@
+function updateDayPlan() {
+let shopsArr = ["Саларис", "Афимол" , "Океания" , "Капитолий" , "Калужский" , "Ереван Плаза" , "Европейский" , "Филион" , "Кунцево Плаза" , "Новомосковский" , "Оливье" , "Принц Плаза" , "Авеню", "Крылатский", "Корабль", "Гавань"];
+
+for(let i = 0; i < shopsArr.length; i++) {
+  let spreadsheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(shopsArr[i]);
+  let arrayFormula = ["=IF(A68>20;AO9/(P60+1);IF(A68>10;AA9/(P59+1);N9/(P58+1)))","=IF(A68>20;AO26/(P60+1);IF(A68>10;AA26/(P59+1);N26/(P58+1)))", "=IF(A68>20;AO35/(P60+1);IF(A68>10;AA35/(P59+1);N35/(P58+1)))"];
+  let j = 0;
+  for (let z = 69; z < 72; z++ ){
+    let value = spreadsheet.getRange('B'+ z).setValue(arrayFormula[j]).getValue();
+    if (value < 0) {
+      value = 0;
+    };
+    spreadsheet.getRange('B' + z).setValue(value);
+    j++;
+  }
+}; 
+};
+
+
+//onedit (обновление времени в отчете)
+function onEdit(e) {
+  let ss = e.source;
+  let sheet = ss.getActiveSheet();
+  let range = e.range;
+  let aRow = range.getRow();
+  let aCol = range.getColumn();
+  let time = new Date();
+  
+
+if (sheet.getName() !== 'Личные продажи' && sheet.getName() !== 'Незавершенные перемещения' && !sheet.getName().includes("2021") && !sheet.getName().includes("2022")) { //исключает листы где не надо отслеживать изменения
+
+  if(aRow < 35 && aCol < 40) { // обрабатывает изменения в области до 35 строки и до 40 столбца (не включительно)
+
+     // получить имя листа в котором изменение
+      let sheetName = sheet.getName();   
+
+      // найти строку соответствующую имени листа в таблице сводной    
+      let summaryTable = ss.getSheetByName("Сводная МСК 3");  
+
+      let shopNameArr = summaryTable.getRange("A4:A19").getValues();
+
+      let shopPos;
+
+      for (let i = 0; i < shopNameArr.length; i++) {
+
+        if (sheetName === shopNameArr[i][0]) {
+
+          shopPos = i;
+
+        }
+      }
+      
+      // создать время
+      time = Utilities.formatDate(time, "GMT+0300", "HH:mm:ss");   
+
+      // внести время в столбец времени согласно строки листа       
+      summaryTable.getRange(4 + shopPos, 14).setValue(time); 
+
+  };
+
+};
+
+} // конец onedit
